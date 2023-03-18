@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
   <head>
     <title>Device Control</title>
@@ -84,61 +83,33 @@
         margin: 0 auto;
       }
     </style>
+    <script>
+      function updateDeviceState(checkbox) {
+        var deviceStateInput = document.querySelector('input[name="device_state"]');
+        if (checkbox.checked) {
+          deviceStateInput.value = checkbox.value;
+        } else {
+          deviceStateInput.value = checkbox.value.replace('_on', '_off');
+        }
+      }
+    </script>
   </head>
   <body>
     <h1>Device Control</h1>
     <form action="/device" method="post">
+      <input type="hidden" name="device_state" value="">
+      {% for device in devices %}
       <label>
-        Pump 1
+        {{ device.name }}
         <div class="switch">
-          <input type="checkbox" name="pump1" value="pump1_on">
+          <input type="checkbox" name="{{ device.id }}" value="{{ device.id }}_on" onclick="updateDeviceState(this);">
           <span class="slider"></span>
         </div>
       </label>
       <br>
-      <label>
-        Pump 2
-        <div class="switch">
-          <input type="checkbox" name="pump2" value="pump2_on">
-          <span class="slider"></span>
-        </div>
-      </label>
-      <br>
-      <label>
-        Pump 3
-        <div class="switch">
-          <input type="checkbox" name="pump3" value="pump3_on">
-          <span class="slider"></span>
-        </div>
-      </label>
-      <br>
-      <label>
-        Pump 4
-        <div class="switch">
-          <input type="checkbox" name="pump4" value="pump4_on">
-          <span class="slider"></span>
-        </div>
-      </label>
-      <br>
-      <label>
-        Fan 1
-        <div class="switch">
-          <input type="checkbox" name="fan1" value="fan1_on">
-          <span class="slider"></span>
-        </div>
-      </label>
-      <br>
-      <label>
-        Fan 2
-        <div class="switch">
-          <input type="checkbox" name="fan2" value="fan2_on">
-          <span class="slider"></span>
-        </div>
-      </label>
-      <br>
+      {% endfor %}
       <br>
       <input type="submit" value="Submit">
     </form>
   </body>
 </html>
-

@@ -1,4 +1,5 @@
 #include <PubSubClient.h>
+#include <WiFiNINA.h>
 
 // WiFi credentials
 const char* ssid = "CanesGuest";
@@ -16,7 +17,8 @@ int relayPin3 = 2; //pump C
 int relayPin4 = 3; //pump D
 int relayPin5 = 4; //fan 1
 int relayPin6 = 5; //fan 2
-
+int relayPin7 = 6; //device 7
+int relayPin8 = 7; //device 8
 
 // Initialize WiFi client and MQTT client
 WiFiClient wifiClient;
@@ -113,82 +115,82 @@ void callback(char* topic, byte* payload, unsigned int length) {
     if (strcmp(payload_char,"pump1_on") == 0)
     {   
         digitalWrite(relayPin1, HIGH);
-        Serial.println("Device 1 turned on");
+        Serial.println("Pump 1 turned on");
     }
     else if (strcmp(payload_char,"pump1_off") == 0)
     {   
         digitalWrite(relayPin1, LOW);
-        Serial.println("Device 1 turned off");
+        Serial.println("Pump 1 turned off");
     }
     else if (strcmp(payload_char,"pump2_on") == 0)
     {   
         digitalWrite(relayPin2, HIGH);
-        Serial.println("Device 1 turned on");
+        Serial.println("Pump 2 turned on");
     }
     else if (strcmp(payload_char,"pump2_off") == 0)
     {   
         digitalWrite(relayPin2, LOW);
-        Serial.println("Device 1 turned off");
+        Serial.println("Pump 2 turned off");
     }
     else if (strcmp(payload_char,"pump3_on") == 0)
     {   
         digitalWrite(relayPin3, HIGH);
-        Serial.println("Device 1 turned on");
+        Serial.println("Pump 3 turned on");
     }
     else if (strcmp(payload_char,"pump3_off") == 0)
     {   
         digitalWrite(relayPin3, LOW);
-        Serial.println("Device 1 turned off");
+        Serial.println("Pump 3 turned off");
     }
     else if (strcmp(payload_char,"pump4_on") == 0)
     {   
         digitalWrite(relayPin4, HIGH);
-        Serial.println("Device 1 turned on");
+        Serial.println("Pump 4 turned on");
     }
     else if (strcmp(payload_char,"pump4_off") == 0)
     {   
         digitalWrite(relayPin4, LOW);
-        Serial.println("Device 1 turned off");
+        Serial.println("Pump 4 turned off");
     }
     else if (strcmp(payload_char,"fan1_on") == 0)
     {   
         digitalWrite(relayPin5, HIGH);
-        Serial.println("Device 1 turned on");
+        Serial.println("fan 1 turned on");
     }
     else if (strcmp(payload_char,"fan1_off") == 0)
     {   
         digitalWrite(relayPin5, LOW);
-        Serial.println("Device 1 turned off");
+        Serial.println("fan 1 turned off");
     }
     else if (strcmp(payload_char,"fan2_on") == 0)
     {   
         digitalWrite(relayPin6, HIGH);
-        Serial.println("Device 1 turned on");
+        Serial.println("fan 2 turned on");
     }
     else if (strcmp(payload_char,"fan2_off") == 0)
     {   
         digitalWrite(relayPin6, LOW);
-        Serial.println("Device 1 turned off");
+        Serial.println("fan 2 turned off");
     }
     else if (strcmp(payload_char,"sample7on") == 0)
     {   
         digitalWrite(relayPin7, HIGH);
-        Serial.println("Device 1 turned on");
+        Serial.println("Device turned on");
     }
     else if (strcmp(payload_char,"sample7off") == 0)
     {   
         digitalWrite(relayPin7, LOW);
-        Serial.println("Device 1 turned off");
+        Serial.println("Device turned off");
     }
     else if (strcmp(payload_char,"sample8on") == 0)
     {   
         digitalWrite(relayPin8, HIGH);
-        Serial.println("Device 1 turned on");
+        Serial.println("Device turned on");
     }
     else if (strcmp(payload_char,"sample8off") == 0)
     {   
         digitalWrite(relayPin8, LOW);
-        Serial.println("Device 1 turned off");
+        Serial.println("Device turned off");
     }
     else
     {
