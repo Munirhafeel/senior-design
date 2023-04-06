@@ -1,11 +1,7 @@
-from gevent import monkey
-monkey.patch_all()
 from flask import Flask, render_template, request, redirect, url_for
 import paho.mqtt.client as mqtt
 import db
-import threading
-from gevent.pywsgi import WSGIServer
-
+from bson.decimal128 import Decimal128
 
 
 app = Flask(__name__)
@@ -20,55 +16,70 @@ devices = [
 ]
 
 # MQTT Broker credentials
-mqtt_server = "test.mosquitto.org"
+mqtt_server = "100.64.74.12"
 mqtt_topic = "fantopic"
+
+# Initialize SensorDataExtractor
+info = db.keys.run()
+db_uri = info.getauth("mongo")
+extractor = db.SensorDataExtractor(db_uri)
+
+def on_connect(client, userdata, flags, rc):
+    client.subscribe("temp_humid")
+    client.subscribe("APDS")
+    client.subscribe("SCD40")
+    client.subscribe("TDS")
+    client.subscribe("pH")
+    client.subscribe("DO")
+    client.subscribe("EC")
+    get_latest_values()
+
+def on_message(client, userdata, msg):
+    incoming_message = msg.payload.decode()
+    extractor.insert_decoded_message(incoming_message)
 
 # Initialize MQTT client
 mqtt_client = mqtt.Client()
+mqtt_client.on_connect = on_connect
+mqtt_client.on_message = on_message
 mqtt_client.connect(mqtt_server, 1883)
 
+# Start the MQTT loop in the background
+mqtt_client.loop_start()
 
-def populate_database():
-    while True:
-        db.run_extract()
+def get_latest_values():
+  sensor_types = ["temperature-humidity", "co2", "light", "pH", "conductivity", "o2"]
+
+  latest_data = {}
+  for sensor_type in sensor_types:
+      latest_collection = extractor.get_latest_collection(sensor_type)
+      if latest_collection:
+          latest_datapoint = extractor.get_latest_datapoint(latest_collection)
+          if latest_datapoint:
+              for key, value in latest_datapoint["data"].items():
+                  # Convert the value to a float if it's stored as a Decimal128 object in MongoDB
+                  if isinstance(value, Decimal128):
+                      value = value.to_decimal().to_float_lossy()
+                  latest_data[key] = value
+                  print(key, value)
 
 
-def write_live():
-    db.run_mqtt()
-
-
-def run_write_live_continuously():
-    while True:
-        write_live()
 
 
 @app.route('/')
 def index():
     return render_template('index.html', devices=devices)
 
-
 @app.route('/device', methods=['POST'])
 def fan():
     fan_state = request.form['device_state']
+    print(fan_state)
     mqtt_client.publish(mqtt_topic, fan_state)
     return redirect(url_for('index'))
 
-
-@app.route('/dashboard', methods=['POST'])
-def dashboard():
-    pass
-
-
-def run_flask_app():
-    http_server = WSGIServer(('', 8080), app)
-    http_server.serve_forever()
-
 if __name__ == '__main__':
-    flask_app_thread = threading.Thread(target=run_flask_app)
-    flask_app_thread.start()
-    write_live_thread = threading.Thread(target=write_live)
-    write_live_thread.start()
-
-    populate_db_thread = threading.Thread(target=populate_database)
-    populate_db_thread.start()
-
+    try:
+        app.run(debug=True)
+    finally:
+        # Stop the MQTT loop when the Flask app stops
+        mqtt_client.loop_stop()

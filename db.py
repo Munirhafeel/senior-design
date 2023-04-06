@@ -119,6 +119,36 @@ class SensorDataExtractor:
             client.loop_forever()
         except Exception as e:
             print(f"Error connecting to MQTT broker: {e}")
+        
+    def insert_decoded_message(self, decoded_message):
+        print("decoded: ", decoded_message)
+        try:
+            timestamp_pattern = r'(\d{4}-\d{2}-\d{2}, \d{2}:\d{2}:\d{2})'
+            timestamp_match = re.search(timestamp_pattern, decoded_message)
+
+            if timestamp_match:
+                timestamp = timestamp_match.group(1)
+                dt = datetime.strptime(timestamp, '%Y-%m-%d, %H:%M:%S')
+
+                for sensor, sensor_info in self.sensor_patterns.items():
+                    match = re.search(sensor_info['pattern'], decoded_message)
+                    if match:
+                        record = {
+                            "metadata": sensor_info['metadata'],
+                            "timestamp": dt,
+                            "data": {k: float(v) for k, v in zip(sensor_info['data_keys'], match.groups())}
+                        }
+                        self.insert_single_record(record, sensor)
+
+        except Exception as e:
+            print(f"Error inserting decoded message: {e}")
+
+    def insert_single_record(self, record, sensor_type):
+        dt = record['timestamp']
+        date_str = dt.strftime('%Y-%m-%d')
+        collection_name = f"{sensor_type}-{date_str}"
+        collection = self.db[collection_name]
+        collection.insert_one(record)
 
     def extract_data(self, file_path):
         with open(file_path, 'r') as file:
@@ -352,7 +382,7 @@ def run_mqtt():
     extractor = SensorDataExtractor(db_uri)
     mqtt_broker = "test.mosquitto.org"
     mqtt_port = 1883
-    mqtt_topic = "sensor_data"
+    mqtt_topic = "fantopic"
 
     try:
         log("Starting MQTT data interception")
